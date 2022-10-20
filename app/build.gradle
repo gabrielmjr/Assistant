@@ -1,0 +1,31 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "com.gabrielMJr.twaire.assistant"
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 100
+        versionName "1.0.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        beta { 
+            applicationIdSuffix ".beta" 
+            versionNameSuffix "-beta"
+            resValue "string", "app_name", "Beta App"
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+	implementation 'com.android.support:design:27.1.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

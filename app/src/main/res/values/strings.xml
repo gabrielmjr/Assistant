@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Assistant</string>
+    
+    
+    <!---->
+    <string name="mic_init_failed">Initialization of text to speech failed.</string>
+    <string name="lang_insupported">The UK and US English are not supported, you can ask for translating to your language.</string>
+    <string name="swithed_to_us">The UK English is not supported, switching to US English.</string>
+    <string name="null_field">This field is empty!</string>
+</resources>
