@@ -62,7 +62,7 @@ public class DataLoader extends AppCompatActivity
         // Questions will be saved here
         String[] result = new String[total_questions_answers];
 
-        for (int i = 1; i < total_questions_answers; i++)
+        for (int i = 1; i < total_questions_answers ; i++)
         {
             QUESTION_SH = getApplicationContext().getSharedPreferences(QUESTION_ID + i, 0);
             if (QUESTION_SH.getString(QUESTION, null) != null)

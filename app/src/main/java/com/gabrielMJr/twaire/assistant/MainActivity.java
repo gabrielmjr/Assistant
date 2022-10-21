@@ -23,6 +23,8 @@ import android.os.CountDownTimer;
 import android.speech.RecognitionListener;
 import java.util.ArrayList;
 import android.os.Handler;
+import com.gabrielMJr.twaire.assistant.device_hw_sw.BatteryReceiver;
+import android.content.IntentFilter;
 
 public class MainActivity extends DataLoader
 {
@@ -45,6 +47,10 @@ public class MainActivity extends DataLoader
 
     // Actions object
     protected static Actions actions;
+
+    // Battery object
+    private static BatteryReceiver batteryReceiver = new BatteryReceiver();
+    private static IntentFilter battery_intent_filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 
     // The assistant will remind the 3 last actions
     private static String action_1 = null;
@@ -69,12 +75,15 @@ public class MainActivity extends DataLoader
     private void assistBrain(String command)
     {
 
+
         String[] commandVetor = command.split(" ");
         boolean status = true;
         int i = 1;
+        int j = 0;
 
         while (true)
         {
+            // Check the answer on shared preferences
             if (status)
             {
                 // Checking from SP
@@ -91,6 +100,8 @@ public class MainActivity extends DataLoader
                 }
                 status = false;
             }
+
+            // On SP doent have answer, check the actions
             else
             {
 
@@ -138,8 +149,41 @@ public class MainActivity extends DataLoader
                         }
                     }
 
+                    // Check for "what" actions
                     else if ("what".equals(u))
                     {
+
+                        // Check for battery
+                        for (String v: commandVetor)
+                        {
+                            if ("battery".equals(v))
+                            {
+                                for (String w: commandVetor)
+                                {
+                                    if ("about".equals(w))
+                                    {
+                                        speak("Your battery status is " + batteryReceiver.toString());
+                                        return;
+                                    }
+                                    else if ("status".equals(w))
+                                    {
+                                        speak("Your battery status is " + batteryReceiver.getStatus());
+                                        return;
+                                    }
+                                    else if ("health".equals(w))
+                                    {
+                                        speak("Your battery health is " + batteryReceiver.getHealth());
+                                        return;
+                                    }
+                                    else if ("percentage".equals(w))
+                                    {
+                                        speak("Your battery have " + batteryReceiver.getPercentage() + " percent of charge");
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+
                         speak("I don't know! Do you know?");
                         setAction_1(actions.LEARNING_0);
                         lastQuestion = command;
@@ -147,6 +191,12 @@ public class MainActivity extends DataLoader
                     } 
                 }
 
+                // The loop must repeat 2 times, just 2 times
+                if (j == 2)
+                {
+                    return;
+                }
+                j++;
             }
         }
     }
@@ -272,6 +322,7 @@ public class MainActivity extends DataLoader
     }
 
 
+
     // Initializing the assistant
     private void initialize()
     {
@@ -281,6 +332,11 @@ public class MainActivity extends DataLoader
 
         // Initialize actions
         actions = new Actions();
+
+        // Initialize battery analyzer
+        /*batteryReceiver = new BatteryReceiver();
+         battery_intent_filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+         */
 
         // Initialize sharedPreferences();
         initializeSharedPreferences();
@@ -412,6 +468,7 @@ public class MainActivity extends DataLoader
         }
     }
 
+    // Shut down tts
     @Override
     protected void onDestroy()
     {
@@ -421,6 +478,22 @@ public class MainActivity extends DataLoader
             tts.shutdown();
         }
         super.onDestroy();
+    }
+
+
+    // Register battery receiver broadcast
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        registerReceiver(batteryReceiver, battery_intent_filter);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        unregisterReceiver(batteryReceiver);
     }
 
     // A simple method to ask mic permission
