@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import android.os.Handler;
 import com.gabrielMJr.twaire.assistant.device_hw_sw.BatteryReceiver;
 import android.content.IntentFilter;
+import com.gabrielMJr.twaire.assistant.device_hw_sw.DateGetter;
 
 public class MainActivity extends DataLoader
 {
@@ -49,8 +50,11 @@ public class MainActivity extends DataLoader
     protected static Actions actions;
 
     // Battery object
-    private static BatteryReceiver batteryReceiver = new BatteryReceiver();
-    private static IntentFilter battery_intent_filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+    private static BatteryReceiver batteryReceiver;
+    private static IntentFilter battery_intent_filter;
+    
+    // Date object
+    private static DateGetter dateGetter;
 
     // The assistant will remind the 3 last actions
     private static String action_1 = null;
@@ -65,7 +69,7 @@ public class MainActivity extends DataLoader
     private static String lastQuestion=  null;
     private static String lastAnswer = null;
 
-
+    
 
 
 
@@ -108,18 +112,31 @@ public class MainActivity extends DataLoader
                 // Checking actions
                 // Learning status 1
                 if (actions.LEARNING_0.equals(action_1))
-                {    
-                    for (String accepted: accept)
+                { 
+                    for (String u: commandVetor)
                     {
-                        for (String u: commandVetor)
-                        {
+
+                        // Check if user acepted
+                        for (String accepted: accept)
+                        {             
                             if (u.equals(accepted))
                             {
                                 speak("What is the answer?");
                                 setAction_1(actions.LEARNING_1);
                                 return;
                             }
-                        }   
+
+                            // Check if user refused
+                            for (String refused: refuse)
+                            {
+                                if (u.equals(refused))
+                                {
+                                    speak("Alright");
+                                    setAction_1(actions.MENU);
+                                    return;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -149,13 +166,13 @@ public class MainActivity extends DataLoader
                         }
                     }
 
-                    // Check for "what" actions
+                    // Check for "what" questions
                     else if ("what".equals(u))
                     {
-
-                        // Check for battery
                         for (String v: commandVetor)
                         {
+                            
+                            // Battery status
                             if ("battery".equals(v))
                             {
                                 for (String w: commandVetor)
@@ -182,6 +199,70 @@ public class MainActivity extends DataLoader
                                     }
                                 }
                             }
+                            
+                            // Time
+                            else if ("is".equals(v))
+                            {
+                                for (String w: commandVetor)
+                                {
+                                    
+                                    // Time
+                                    if ("time".equals(w))
+                                    {
+                                        speak("Now is " + sinthonizeDate());
+                                        return;
+                                    }
+                                    
+                                    // Date
+                                    else if ("date".equals(w))
+                                    {
+                                        speak("Today is " + dateGetter.getDay()
+                                              + " of " + dateGetter.getMonthName()
+                                              + " of " + dateGetter.getYear());
+                                              return;
+                                    }
+                                    
+                                    // Second, minute, hour, day, month, year and year_day
+                                    else if ("second".equals(w))
+                                    {
+                                        speak("Now is " + dateGetter.getSecond() + " second");
+                                        return;
+                                    }
+                                    else if ("minute".equals(w))
+                                    {
+                                        speak("Now is " + dateGetter.getMinute() + " minute");
+                                        return;
+                                    }
+                                    else if ("hour".equals(w))
+                                    {
+                                        speak("Now is " + dateGetter.getHour() + " hour");
+                                        return;
+                                    }
+                                    else if ("day".equals(w))
+                                    {
+                                        for (String x: commandVetor)
+                                        {
+                                            if ("year".equals(x))
+                                            {
+                                                speak("Today is " + dateGetter.getDayYear() + "° day of year");
+                                                return;
+                                            }
+                                        }
+                                        speak("today is day" + dateGetter.getDay());
+                                        return;
+                                    }
+                                    else if ("month".equals(w))
+                                    {
+                                        speak("we are in " + dateGetter.getMonthName());
+                                        return;
+                                    }
+                                    else if ("year".equals(w))
+                                    {
+                                        speak("we are in " + dateGetter.getYear());
+                                        return;
+                                    }
+                                }
+                            }                   
                         }
 
                         speak("I don't know! Do you know?");
@@ -332,11 +413,14 @@ public class MainActivity extends DataLoader
 
         // Initialize actions
         actions = new Actions();
+        
+        // Initialize Date
+        dateGetter = new DateGetter();
 
         // Initialize battery analyzer
-        /*batteryReceiver = new BatteryReceiver();
+         batteryReceiver = new BatteryReceiver();
          battery_intent_filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-         */
+         
 
         // Initialize sharedPreferences();
         initializeSharedPreferences();
@@ -508,6 +592,32 @@ public class MainActivity extends DataLoader
         action_3 = action_2;
         action_2 = action_1;
         action_1 = action;
+    }
+    
+    
+    // Sinthonize and normaize date
+    private String sinthonizeDate()
+    {
+        // Strings that contains infixes
+        String hh = null;
+        String mm = null;
+        String ss = null;
+        
+        // Dates
+        int hour = Integer.valueOf(dateGetter.getHour());
+        int minute = Integer.valueOf(dateGetter.getMinute());
+        int second = Integer.valueOf(dateGetter.getSecond());
+        
+        // Hours is equals to "hour" if hour <= 1, else is equals to "hours"
+        hh = (hour <= 1) ? "hour": "hours";
+        mm = (minute <= 1) ? "minute": "minutes";
+        ss = (second <= 1) ? "second": "seconds";
+        
+        return hour + " " + hh 
+               + ", " 
+               + minute + " " + mm 
+               + " and "
+               + second + " " + ss;
     }
 
 }
